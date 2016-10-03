@@ -1,0 +1,12 @@
+About project creation
+
+1) it's better to download example ABSOLUTELY without changes
+
+  - find problem with password - parameter was written like PASSWORD - so no authorization
+  - reload maven repository & index - just time consuming procedure but after this it found new library - com.google.cloud.sql
+  - it detects if program deployed on GAE or not - based on this choose connection method & driver
+  - change level of language is possible
+    1) Project Structure -> Project
+    2) Project Structure -> Modules
+    3) Settings -> Build, execution, Deployment -> Compiler -> Java Compiler -> Target Bytecode Version
+  - it is important to include Google App Engine support - otherwise incorrect artifact creation (no libs)

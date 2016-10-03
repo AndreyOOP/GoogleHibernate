@@ -15,6 +15,11 @@
             <artifactId>mysql-socket-factory</artifactId>
             <version>1.0.1</version>
         </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.30</version>
+        </dependency>
 
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -23,21 +28,13 @@
             <type>jar</type>
             <scope>provided</scope>
         </dependency>
-        <!-- [START dependencies] -->
 
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.30</version>
-        </dependency>
-
-        <!-- Parent POM defines ${appengine.sdk.version} (updates frequently). -->
         <dependency>
             <groupId>com.google.appengine</groupId>
             <artifactId>appengine-api-1.0-sdk</artifactId>
             <version>1.9.42</version>
         </dependency>
-        <!-- [END dependencies] -->
+
     </dependencies>
 
 </project>

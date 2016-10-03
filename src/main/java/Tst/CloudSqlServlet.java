@@ -56,9 +56,11 @@ public class CloudSqlServlet extends HttpServlet {
 
                     String savedIp = rs.getString("user_ip");
                     String timeStamp = rs.getString("timestamp");
-                    out.print("Time: " + timeStamp + " Addr: " + savedIp + "\n");
+                    out.print("TimeN: " + timeStamp + " Addr: " + savedIp + "\n");
                 }
             }
+
+            out.print( "Get From testuserauth table: " + dbAccess(conn));
 
         } catch (SQLException e) {
             throw new ServletException("SQL error", e);
@@ -106,5 +108,21 @@ public class CloudSqlServlet extends HttpServlet {
         } else {
             return System.getProperty("ae-cloudsql.local-database-url"); // Set the url with the local MySQL database connection url when running locally
         }
+    }
+
+    private String dbAccess(Connection connection){
+
+        try {
+
+            ResultSet resultSet = connection.prepareStatement("SELECT * FROM testuserauth").executeQuery();
+            resultSet.next();
+
+            return resultSet.getString("login");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return "";
     }
 }
