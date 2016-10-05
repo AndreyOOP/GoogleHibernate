@@ -20,10 +20,10 @@ import javax.servlet.http.HttpServletResponse;
 
 public class CloudSqlServlet extends HttpServlet {
 
-    final String createTableSql = "CREATE TABLE IF NOT EXISTS visits ( visit_id INT NOT NULL AUTO_INCREMENT, user_ip VARCHAR(46) NOT NULL," +
-                                  " timestamp DATETIME NOT NULL, PRIMARY KEY (visit_id) )";
-    final String createVisitSql = "INSERT INTO visits (user_ip, timestamp) VALUES (?, ?)";
-    final String selectSql      = "SELECT user_ip, timestamp FROM visits ORDER BY timestamp DESC LIMIT 10";
+//    final String createTableSql = "CREATE TABLE IF NOT EXISTS visits ( visit_id INT NOT NULL AUTO_INCREMENT, user_ip VARCHAR(46) NOT NULL," +
+//                                  " timestamp DATETIME NOT NULL, PRIMARY KEY (visit_id) )";
+//    final String createVisitSql = "INSERT INTO visits (user_ip, timestamp) VALUES (?, ?)";
+//    final String selectSql      = "SELECT user_ip, timestamp FROM visits ORDER BY timestamp DESC LIMIT 10";
 
 
     @Override
@@ -33,58 +33,18 @@ public class CloudSqlServlet extends HttpServlet {
 
         ignoreFavicon(path);
 
-        String userIp = storeIP( req.getRemoteAddr());
-
         PrintWriter out = resp.getWriter();
         resp.setContentType("text/plain");
 
         String url = chooseDriverGAEorLocalAndReturnURL();
 
-        try (Connection conn = DriverManager.getConnection(url);
-             PreparedStatement statementCreateVisit = conn.prepareStatement(createVisitSql)) {
-
-            conn.createStatement().executeUpdate(createTableSql);
-            statementCreateVisit.setString(1, userIp);
-            statementCreateVisit.setTimestamp(2, new Timestamp(new Date().getTime()));
-            statementCreateVisit.executeUpdate();
-
-            try (ResultSet rs = conn.prepareStatement(selectSql).executeQuery()) {
-
-                out.print("Last 10 visits:\n");
-
-                while (rs.next()) {
-
-                    String savedIp = rs.getString("user_ip");
-                    String timeStamp = rs.getString("timestamp");
-                    out.print("TimeN: " + timeStamp + " Addr: " + savedIp + "\n");
-                }
-            }
+        try (Connection conn = DriverManager.getConnection(url)) {
 
             out.print( "Get From testuserauth table: " + dbAccess(conn));
 
         } catch (SQLException e) {
             throw new ServletException("SQL error", e);
         }
-    }
-
-    private String storeIP(String userIp){
-
-        InetAddress address = null;
-
-        try {
-            address = InetAddress.getByName(userIp);
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-
-        if (address instanceof Inet6Address) {
-            return userIp.substring(0, userIp.indexOf(":", userIp.indexOf(":") + 1)) + ":*:*:*:*:*:*";
-
-        } else if (address instanceof Inet4Address) {
-            return userIp.substring(0, userIp.indexOf(".", userIp.indexOf(".") + 1)) + ".*.*";
-        }
-
-        return "error";
     }
 
     private void ignoreFavicon(String path){
@@ -115,6 +75,8 @@ public class CloudSqlServlet extends HttpServlet {
         try {
 
             ResultSet resultSet = connection.prepareStatement("SELECT * FROM testuserauth").executeQuery();
+
+            resultSet.next();
             resultSet.next();
 
             return resultSet.getString("login");
