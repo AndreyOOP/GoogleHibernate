@@ -1,30 +1,24 @@
 package Tst;
 
+import com.google.appengine.api.utils.SystemProperty;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 
 public class CloudSqlServlet extends HttpServlet {
-
-//    final String createTableSql = "CREATE TABLE IF NOT EXISTS visits ( visit_id INT NOT NULL AUTO_INCREMENT, user_ip VARCHAR(46) NOT NULL," +
-//                                  " timestamp DATETIME NOT NULL, PRIMARY KEY (visit_id) )";
-//    final String createVisitSql = "INSERT INTO visits (user_ip, timestamp) VALUES (?, ?)";
-//    final String selectSql      = "SELECT user_ip, timestamp FROM visits ORDER BY timestamp DESC LIMIT 10";
-
 
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
@@ -38,19 +32,14 @@ public class CloudSqlServlet extends HttpServlet {
 
         String url = chooseDriverGAEorLocalAndReturnURL();
 
+        out.print( "Get From testuserauth table (Hibernate): " + hibernateDbAccess() + "\n");
+
         try (Connection conn = DriverManager.getConnection(url)) {
 
-            out.print( "Get From testuserauth table: " + dbAccess(conn));
+            out.print( "Get From testuserauth table: " + dbAccess(conn) + "\n");
 
         } catch (SQLException e) {
             throw new ServletException("SQL error", e);
-        }
-    }
-
-    private void ignoreFavicon(String path){
-
-        if (path.startsWith("/favicon.ico")) { // ignore the request for favicon.ico
-            return;
         }
     }
 
@@ -63,10 +52,10 @@ public class CloudSqlServlet extends HttpServlet {
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();}
 
-            return System.getProperty("ae-cloudsql.cloudsql-database-url");
+            return System.getProperty("cloudsql.url");
 
         } else {
-            return System.getProperty("ae-cloudsql.local-database-url"); // Set the url with the local MySQL database connection url when running locally
+            return System.getProperty("cloudsql.url.dev"); // Set the url with the local MySQL database connection url when running locally
         }
     }
 
@@ -86,5 +75,38 @@ public class CloudSqlServlet extends HttpServlet {
         }
 
         return "";
+    }
+
+    private String hibernateDbAccess(){
+
+        Map<String, String> properties = new HashMap();
+        if (SystemProperty.environment.value() ==
+                SystemProperty.Environment.Value.Production) {
+            properties.put("javax.persistence.jdbc.driver",
+                    "com.mysql.jdbc.GoogleDriver");
+            properties.put("javax.persistence.jdbc.url",
+                    System.getProperty("cloudsql.url"));
+        } else {
+            properties.put("javax.persistence.jdbc.driver",
+                    "com.mysql.jdbc.Driver");
+            properties.put("javax.persistence.jdbc.url",
+                    System.getProperty("cloudsql.url.dev"));
+        }
+
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("Demo", properties);
+        EntityManager em = emf.createEntityManager();
+
+        em.getTransaction().begin();
+
+        TableEntity te = em.find(TableEntity.class, "test3");
+
+        return te.getPassword() + " " + te.getLogin();
+    }
+
+    private void ignoreFavicon(String path){
+
+        if (path.startsWith("/favicon.ico")) { // ignore the request for favicon.ico
+            return;
+        }
     }
 }
